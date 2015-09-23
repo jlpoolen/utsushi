@@ -184,16 +184,28 @@ using std::runtime_error;
   libusb_device_handle *
   usb::usable_match_(const device_info::ptr& device, libusb_device *dev)
   {
-    if (device->usb_bus_number () != libusb_get_bus_number (dev))
+    if (device->usb_bus_number () != libusb_get_bus_number (dev)){
+      log::error("[usb:usable_match 100] usb_bus_number >>%1%<< != libusb_get_bus_number >>%2%<< ")
+	%device->usb_bus_number ()
+	%libusb_get_bus_number (dev);
       return NULL;
+    }
 
 #if HAVE_LIBUSB_GET_PORT_NUMBER
-    if (device->usb_port_number () != libusb_get_port_number (dev))
+    if (device->usb_port_number () != libusb_get_port_number (dev)){
+      log::error("[usb:usable_match 101] usb_port_number >>%1%<< != libusb_get_port_number >>%2%<< ")
+	%device->usb_port_number ()
+	%libusb_get_port_number (dev);      
       return NULL;
+    }
 #endif
 
-    if (device->usb_device_address () != libusb_get_device_address (dev))
+    if (device->usb_device_address () != libusb_get_device_address (dev)){
+      log::error("[usb:usable_match 103] device->usb_device_address >>%1%<< != libusb_get_device_address >>%2%<< ")
+	%device->usb_device_address ()
+	%libusb_get_device_address (dev);
       return NULL;
+    }
 
     struct libusb_device_descriptor descriptor;
 
@@ -201,8 +213,18 @@ using std::runtime_error;
 
     if (err
         || device->usb_vendor_id ()  != descriptor.idVendor
-        || device->usb_product_id () != descriptor.idProduct)
+        || device->usb_product_id () != descriptor.idProduct){
+      log::error("[usb:usable_match 104-] err = %1%") % libusb_error_name (err) ;
+      log::error("[usb:usable_match 104a] device->usb_vendor_id () = %1%")
+	%device->usb_vendor_id ();                  ;
+      log::error("[usb:usable_match 104b] descriptor.idVendor = %1%")
+	%descriptor.idVendor;
+      log::error("[usb:usable_match 104c] device->usb_product_id () = %1%")
+	%device->usb_product_id ();
+      log::error("[usb:usable_match 104d] descriptor.idProduct = %1%")
+	%descriptor.idProduct;
       return NULL;
+    }
 
     err = libusb_open (dev, &handle_);
     if (err)
@@ -272,8 +294,10 @@ using std::runtime_error;
 
     if (current_cfg == cfg_)
       {
+	log::error("[usb:usable_match 105] matched: current_cfg == cfg_; calling set_bulk_endpoints(dev)");
         if (set_bulk_endpoints_(dev))
           return handle_;   // we got a usable match!
+	log::error("[usb:usable_match 106] ERROR: set_bulk_endpoints did not return true.");
       }
     else
       {
@@ -292,16 +316,22 @@ using std::runtime_error;
   bool
   usb::set_bulk_endpoints_(libusb_device *dev)
   {
-    if (!dev) return false;
+    if (!dev){
+      log::error("[usb:set_bulk_endpoints 100] ERROR:dev was false.");
+      return false;
+    }
 
     struct libusb_config_descriptor *config;
 
     int err = libusb_get_config_descriptor_by_value (dev, cfg_, &config);
     if (err)
       {
+	log::error("[usb:set_bulk_endpoints 101] FAILED: libusb_get_config_descriptor_by_value (dev, cfg_, &config).");
         return false;
       }
-
+    log::error("[usb:set_bulk_endpoints 102] About to loop over config->interface with %1% count")
+      %config->interface[if_].num_altsetting;
+    
     for (int a = 0; a < config->interface[if_].num_altsetting; ++a)
       {
         const struct libusb_interface_descriptor *id
@@ -322,7 +352,10 @@ using std::runtime_error;
           }
       }
     libusb_free_config_descriptor (config);
-
+    log::error("[usb:set_bulk_endpoints 103] ep_bulk_i_  = %1%  ")
+      %ep_bulk_i_ ;
+    log::error("[usb:set_bulk_endpoints 103] ep_bulk_o_  = %1%  ")
+      %ep_bulk_o_ ;
     return (-1 != ep_bulk_i_ && -1 != ep_bulk_o_);
   }
 
