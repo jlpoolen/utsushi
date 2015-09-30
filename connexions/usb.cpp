@@ -186,24 +186,24 @@ using std::runtime_error;
   {
     if (device->usb_bus_number () != libusb_get_bus_number (dev)){
       log::error("[usb:usable_match 100] usb_bus_number >>%1%<< != libusb_get_bus_number >>%2%<< ")
-	%device->usb_bus_number ()
-	%libusb_get_bus_number (dev);
+	% unsigned (device->usb_bus_number ())
+	% unsigned (libusb_get_bus_number (dev));
       return NULL;
     }
 
 #if HAVE_LIBUSB_GET_PORT_NUMBER
     if (device->usb_port_number () != libusb_get_port_number (dev)){
       log::error("[usb:usable_match 101] usb_port_number >>%1%<< != libusb_get_port_number >>%2%<< ")
-	%device->usb_port_number ()
-	%libusb_get_port_number (dev);      
+	% unsigned (device->usb_port_number ())
+	% unsigned (libusb_get_port_number (dev));      
       return NULL;
     }
 #endif
 
     if (device->usb_device_address () != libusb_get_device_address (dev)){
       log::error("[usb:usable_match 103] device->usb_device_address >>%1%<< != libusb_get_device_address >>%2%<< ")
-	%device->usb_device_address ()
-	%libusb_get_device_address (dev);
+	% unsigned (device->usb_device_address ())
+	% unsigned (libusb_get_device_address (dev));
       return NULL;
     }
 
